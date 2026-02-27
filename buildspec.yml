@@ -11,24 +11,35 @@ phases:
 
   pre_build:
     commands:
-      - echo "Starting Selenium Grid..."
-      - docker-compose up -d
-      - docker ps
-      - echo "Waiting for Grid to be ready..."
+      - echo "========== Starting Selenium Hub =========="
+      - docker-compose up -d selenium-hub
 
+      - echo "========== Waiting for Hub to be accessible =========="
+      - |
+        until docker exec selenium-hub curl -s http://localhost:4444/status > /dev/null; do
+          echo "Hub not up yet..."
+          sleep 5
+        done
+
+      - echo "========== Starting Browser Nodes =========="
+      - docker-compose up -d chrome firefox
+
+      - echo "========== Waiting for Selenium Grid to be READY =========="
       - |
         until docker exec selenium-hub curl -s http://localhost:4444/status | grep '"ready":true'; do
           echo "Grid not ready yet..."
           sleep 5
         done
 
-      - echo "Selenium Grid is ready!"
+      - echo "========== Selenium Grid is READY =========="
 
   build:
     commands:
+      - echo "========== Running Maven Tests =========="
       - mvn clean test
 
   post_build:
     commands:
+      - echo "========== Stopping Selenium Grid =========="
       - docker-compose down
-      - echo "Build completed!"
+      - echo "========== Build Finished =========="
