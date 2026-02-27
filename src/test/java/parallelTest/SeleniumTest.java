@@ -2,61 +2,48 @@ package parallelTest;
 
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
-import org.openqa.selenium.remote.DesiredCapabilities;
+import org.openqa.selenium.chrome.ChromeOptions;
+import org.openqa.selenium.firefox.FirefoxOptions;
+import org.openqa.selenium.edge.EdgeOptions;
 import org.openqa.selenium.remote.RemoteWebDriver;
+import org.testng.annotations.*;
 
-import org.testng.Assert;
-import org.testng.annotations.BeforeTest;
-import org.testng.annotations.Parameters;
-import org.testng.annotations.Test;
-
-import java.net.MalformedURLException;
 import java.net.URL;
 
 public class SeleniumTest {
+
     WebDriver driver;
 
     @BeforeTest
     @Parameters("browserType")
-    public void setup(String browser) throws MalformedURLException {
-        DesiredCapabilities capabilities = new DesiredCapabilities();
+    public void setup(String browser) throws Exception {
 
-        if(browser.equalsIgnoreCase("firefox")){
-            capabilities.setBrowserName("firefox");
+        String hubUrl = System.getenv("HUB_URL") != null
+                ? System.getenv("HUB_URL")
+                : "http://localhost:4444";
+
+        if (browser.equalsIgnoreCase("chrome")) {
+            driver = new RemoteWebDriver(new URL(hubUrl), new ChromeOptions());
+        } else if (browser.equalsIgnoreCase("firefox")) {
+            driver = new RemoteWebDriver(new URL(hubUrl), new FirefoxOptions());
+        } else if (browser.equalsIgnoreCase("edge")) {
+            driver = new RemoteWebDriver(new URL(hubUrl), new EdgeOptions());
         }
-
-        if(browser.equalsIgnoreCase("chrome")){
-            capabilities.setBrowserName("chrome");
-        }
-
-        if(browser.equalsIgnoreCase("edge")){
-            capabilities.setBrowserName("MicrosoftEdge");
-        }
-
-        driver = new RemoteWebDriver(new URL("http://localhost:4444"), capabilities);
     }
 
     @Test
-    public void SeleniumCrossBrowserTests() throws InterruptedException {
+    public void SeleniumCrossBrowserTests() {
 
         driver.get("https://anupdamoda.github.io/AceOnlineShoePortal/index.html");
-        driver.findElement(By.cssSelector("#menuToggle > input:nth-child(1)")).click();
-//        Thread.sleep(2000);
-//        driver.findElement(By.cssSelector("#menu > a:nth-child(2) > li:nth-child(1)")).click();
-//        driver.findElement(By.cssSelector("#usr")).sendKeys("sa");
-//        driver.findElement(By.cssSelector("#usr")).sendKeys("sa");
-//        driver.findElement(By.cssSelector("#pwd")).sendKeys("sa");
-//        driver.findElement(By.cssSelector("input.btn")).click();
-//
-//        WebElement webElement = driver.findElement(By.cssSelector("#SmokeTests > center:nth-child(3) > h3:nth-child(1)"));
-//
-//        String expectedFirstProductCategory = "Formal Shoes";
-//
-//        Assert.assertEquals(webElement.getText(), expectedFirstProductCategory);
+        driver.findElement(By.cssSelector("#menuToggle > input")).click();
 
-        driver.close();
+        System.out.println("Title: " + driver.getTitle());
     }
 
-
+    @AfterTest
+    public void tearDown() {
+        if (driver != null) {
+            driver.quit();
+        }
+    }
 }

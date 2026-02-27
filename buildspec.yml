@@ -1,5 +1,9 @@
 version: 0.2
 
+env:
+  variables:
+    HUB_URL: "http://selenium-hub:4444"
+
 phases:
   install:
     runtime-versions:
@@ -7,12 +11,18 @@ phases:
 
   pre_build:
     commands:
+      - echo "Starting Selenium Grid..."
       - docker-compose up -d
+      - docker ps
+      - echo "Waiting for Grid to be ready..."
+
       - |
-        until curl -s http://localhost:4444/status | grep '"ready":true'; do
-          echo "Waiting for Selenium Grid..."
+        until docker exec selenium-hub curl -s http://localhost:4444/status | grep '"ready":true'; do
+          echo "Grid not ready yet..."
           sleep 5
         done
+
+      - echo "Selenium Grid is ready!"
 
   build:
     commands:
@@ -21,3 +31,4 @@ phases:
   post_build:
     commands:
       - docker-compose down
+      - echo "Build completed!"
