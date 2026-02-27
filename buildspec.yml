@@ -18,7 +18,7 @@ phases:
       - echo "Waiting for Grid to be ready..."
       - |
         timeout 180 bash -c '
-        until curl -s http://localhost:4444/status | jq -r ".value.ready" | grep true; doo
+        until curl -s http://localhost:4444/status | jq -r ".value.ready" | grep true; do
           echo "Grid not ready yet..."
           sleep 5
         done
