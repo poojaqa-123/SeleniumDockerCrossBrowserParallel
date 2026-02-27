@@ -1,45 +1,38 @@
 version: 0.2
 
-env:
-  variables:
-    HUB_URL: "http://selenium-hub:4444"
-
 phases:
   install:
     runtime-versions:
       java: corretto17
+    commands:
+      - echo "Install phase"
+      - mvn -v
+      - docker -v
+      - docker-compose -v
 
   pre_build:
     commands:
-      - echo "========== Starting Selenium Hub =========="
-      - docker-compose up -d selenium-hub
+      - echo "Starting Selenium Grid..."
+      - docker-compose up -d
 
-      - echo "========== Waiting for Hub to be accessible =========="
+      - echo "Waiting for Grid to be ready..."
       - |
-        until docker exec selenium-hub curl -s http://localhost:4444/status > /dev/null; do
-          echo "Hub not up yet..."
-          sleep 5
-        done
-
-      - echo "========== Starting Browser Nodes =========="
-      - docker-compose up -d chrome firefox
-
-      - echo "========== Waiting for Selenium Grid to be READY =========="
-      - |
-        until docker exec selenium-hub curl -s http://localhost:4444/status | grep '"ready":true'; do
+        timeout 180 bash -c '
+        until curl -s http://localhost:4444/status | grep "\"ready\":true"; do
           echo "Grid not ready yet..."
           sleep 5
         done
+        '
 
-      - echo "========== Selenium Grid is READY =========="
+      - echo "Grid is READY!"
 
   build:
     commands:
-      - echo "========== Running Maven Tests =========="
+      - echo "Running Tests..."
       - mvn clean test
 
   post_build:
     commands:
-      - echo "========== Stopping Selenium Grid =========="
+      - echo "Stopping containers..."
       - docker-compose down
-      - echo "========== Build Finished =========="
+      - echo "Build Finished"
