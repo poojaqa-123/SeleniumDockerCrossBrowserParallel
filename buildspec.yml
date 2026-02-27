@@ -18,7 +18,7 @@ phases:
       - echo "Waiting for Grid to be ready..."
       - |
         timeout 180 bash -c '
-        until curl -s http://selenium-hub:4444/status | grep "\"ready\":true"; do
+        until curl -s http://localhost:4444/status | jq -r ".value.ready" | grep true; doo
           echo "Grid not ready yet..."
           sleep 5
         done
