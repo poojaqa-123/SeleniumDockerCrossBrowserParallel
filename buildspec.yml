@@ -1,38 +1,9 @@
 version: 0.2
 
 phases:
-  install:
-    runtime-versions:
-      java: corretto17
-    commands:
-      - echo "Install phase"
-      - mvn -v
-      - docker -v
-      - docker-compose -v
-
   pre_build:
     commands:
-      - echo "Starting Selenium Grid..."
       - docker-compose up -d
-
-      - echo "Waiting for Grid to be ready..."
-      - |
-        timeout 180 bash -c '
-        until curl -s http://localhost:4444/status | jq -r ".value.ready" | grep true; do
-          echo "Grid not ready yet..."
-          sleep 5
-        done
-        '
-
-      - echo "Grid is READY!"
-
   build:
     commands:
-      - echo "Running Tests..."
-      - mvn clean test
-
-  post_build:
-    commands:
-      - echo "Stopping containers..."
-      - docker-compose down
-      - echo "Build Finished"
+      - mvn test
